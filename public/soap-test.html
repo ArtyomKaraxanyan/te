@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOAP Service Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            font-family: monospace;
+            min-height: 200px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #545b62;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .response h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .response pre {
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .error {
+            border-left-color: #dc3545;
+        }
+        .success {
+            border-left-color: #28a745;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .info a {
+            color: #004085;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SOAP Service Tester</h1>
+
+        <div class="info">
+            <strong>WSDL Location:</strong> <a href="http://localhost:8080/soap?wsdl" target="_blank">http://localhost:8080/soap?wsdl</a>
+        </div>
+
+        <form id="orderForm">
+            <div class="form-group">
+                <label for="customerName">Customer Name:</label>
+                <input type="text" id="customerName" name="customerName" value="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="customerEmail">Customer Email:</label>
+                <input type="email" id="customerEmail" name="customerEmail" value="john.doe@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <input type="text" id="address" name="address" value="123 Main Street, New York, NY 10001" required>
+            </div>
+
+            <div class="form-group">
+                <label for="totalAmount">Total Amount (EUR):</label>
+                <input type="number" id="totalAmount" name="totalAmount" value="299.99" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="items">Items (comma-separated):</label>
+                <input type="text" id="items" name="items" value="Ceramic Tile 30x60, Grout, Adhesive" required>
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select id="status" name="status">
+                    <option value="pending" selected>Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="refunded">Refunded</option>
+                </select>
+            </div>
+
+            <button type="submit">Create Order via SOAP</button>
+            <button type="button" class="secondary" onclick="showXML()">Show SOAP XML</button>
+        </form>
+
+        <div id="xmlPreview" style="display: none;">
+            <h3>SOAP Request XML:</h3>
+            <textarea id="xmlContent" readonly></textarea>
+            <button type="button" onclick="copyXML()">Copy XML</button>
+        </div>
+
+        <div id="response"></div>
+    </div>
+
+    <script>
+        function generateSOAPXML(formData) {
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://localhost:8080/soap">
+  <soap:Body>
+    <tns:createOrder>
+      <customerName>${formData.customerName}</customerName>
+      <customerEmail>${formData.customerEmail}</customerEmail>
+      <address>${formData.address}</address>
+      <totalAmount>${formData.totalAmount}</totalAmount>
+      <items>${formData.items}</items>
+      <status>${formData.status}</status>
+    </tns:createOrder>
+  </soap:Body>
+</soap:Envelope>`;
+        }
+
+        function showXML() {
+            const form = document.getElementById('orderForm');
+            const formData = {
+                customerName: form.customerName.value,
+                customerEmail: form.customerEmail.value,
+                address: form.address.value,
+                totalAmount: form.totalAmount.value,
+                items: form.items.value,
+                status: form.status.value
+            };
+
+            const xml = generateSOAPXML(formData);
+            document.getElementById('xmlContent').value = xml;
+            document.getElementById('xmlPreview').style.display = 'block';
+        }
+
+        function copyXML() {
+            const xmlContent = document.getElementById('xmlContent');
+            xmlContent.select();
+            document.execCommand('copy');
+            alert('XML copied to clipboard!');
+        }
+
+        function formatXML(xml) {
+            const PADDING = ' '.repeat(2);
+            const reg = /(>)(<)(\/*)/g;
+            let pad = 0;
+
+            xml = xml.replace(reg, '$1\n$2$3');
+
+            return xml.split('\n').map((node) => {
+                let indent = 0;
+                if (node.match(/.+<\/\w[^>]*>$/)) {
+                    indent = 0;
+                } else if (node.match(/^<\/\w/) && pad > 0) {
+                    pad -= 1;
+                } else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
+                    indent = 1;
+                } else {
+                    indent = 0;
+                }
+
+                pad += indent;
+
+                return PADDING.repeat(pad - indent) + node;
+            }).join('\n');
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                customerName: e.target.customerName.value,
+                customerEmail: e.target.customerEmail.value,
+                address: e.target.address.value,
+                totalAmount: e.target.totalAmount.value,
+                items: e.target.items.value,
+                status: e.target.status.value
+            };
+
+            const soapXML = generateSOAPXML(formData);
+
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<p>Sending SOAP request...</p>';
+
+            try {
+                const response = await fetch('http://localhost:8080/soap', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/xml; charset=utf-8'
+                    },
+                    body: soapXML
+                });
+
+                const responseText = await response.text();
+
+                // Parse response to check for success
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(responseText, "text/xml");
+                const success = xmlDoc.getElementsByTagName("success")[0]?.textContent;
+                const orderId = xmlDoc.getElementsByTagName("order_id")[0]?.textContent;
+                const message = xmlDoc.getElementsByTagName("message")[0]?.textContent;
+                const error = xmlDoc.getElementsByTagName("error")[0]?.textContent;
+
+                const isSuccess = success === "true" || success === "1";
+
+                responseDiv.className = 'response ' + (isSuccess ? 'success' : 'error');
+                responseDiv.innerHTML = `
+                    <h3>${isSuccess ? '✓ Success' : '✗ Error'}</h3>
+                    ${orderId ? `<p><strong>Order ID:</strong> ${orderId}</p>` : ''}
+                    ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
+                    ${error ? `<p><strong>Error:</strong> ${error}</p>` : ''}
+                    <h4>Full SOAP Response:</h4>
+                    <pre>${formatXML(responseText)}</pre>
+                `;
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.innerHTML = `
+                    <h3>✗ Request Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

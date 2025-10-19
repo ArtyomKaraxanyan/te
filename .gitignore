@@ -1,0 +1,38 @@
+# Composer
+/vendor/
+composer.lock
+
+# Environment
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/logs/
+
+# Docker volumes
+/data/
+/mysql_data/
+/manticore_data/
+
+# Test output
+.phpunit.result.cache
+/coverage/
+
+# Temporary files
+/tmp/
+*.tmp
+
+# Downloaded dump
+dump.sql
