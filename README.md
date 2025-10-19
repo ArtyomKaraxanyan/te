@@ -38,10 +38,10 @@ GET /api/price?factory=cobsa&collection=manual&article=manu7530bcbm-manualbaltic
 GET /api/orders/statistics?page=1&per_page=10&group_by=month
 ```
 
-### 3. SOAP Service
+### 3. SOAP Service 
 ```bash
-POST /soap
-WSDL: http://localhost:8080/soap?wsdl
+POST /api/orders/new
+WSDL: http://localhost:8080/api/orders/new?wsdl
 Tester: http://localhost:8080/soap-test.html
 ```
 
