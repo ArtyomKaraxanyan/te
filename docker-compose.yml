@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: tile_nginx
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+    volumes:
+      - ./public:/var/www/html/public
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - tile_network
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: tile_php
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_NAME=${DB_NAME:-tile_app}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASS=${DB_PASS:-root}
+      - MANTICORE_HOST=${MANTICORE_HOST:-manticore}
+      - MANTICORE_PORT=${MANTICORE_PORT:-9306}
+    depends_on:
+      - mysql
+      - manticore
+    networks:
+      - tile_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: tile_mysql
+    ports:
+      - "${DB_EXTERNAL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-root}
+      MYSQL_DATABASE: ${DB_NAME:-tile_app}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - tile_network
+
+  manticore:
+    image: manticoresearch/manticore:latest
+    container_name: tile_manticore
+    ports:
+      - "${MANTICORE_HTTP_PORT:-9308}:9308"
+      - "${MANTICORE_MYSQL_PORT:-9306}:9306"
+    volumes:
+      - manticore_data:/var/lib/manticore
+      - ./docker/manticore/manticore.conf:/etc/manticoresearch/manticore.conf
+    networks:
+      - tile_network
+
+networks:
+  tile_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  manticore_data:
